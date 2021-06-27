@@ -7,6 +7,7 @@ Final Assignment
 """
 # %%
 print(__doc__)
+from numpy.lib.function_base import average
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -24,52 +25,6 @@ print('3 - Busquen un dataset de internet público de señales de sensores.  ¿C
 print('4 - Prueben alternativas para mejorar la clasificación de las ondas alfa.')
 print('5 - ¿Que feature utilizarian para mejorar la clasificacion que ofrece Keras con MLP para las series de tiempo?')
 print('6 - Suban un snippet que aborde alguna problemática de solución, implementé algún otro método de clasificación o de análisis, sobre los datos registrados en este repositorio.')
-
-
-'''
-El experimento para el Ejercicio (1) está en el directorio data/experimentosujeto.dat
-
-Sujeto #1 se colocó el dispositivo de captura de señales de EEG EPOC Emotiv.  Cuatro canales se habilitaron F7, F8 frontales y O1,O2 occipitales.
-El dispositvo además tiene información de dos IMUs, en Gyro_x y Gyro_y.
-La persona estuvo sentada durante 5 minutos aproximadamente.  Durante diferentes períodos de tiempo realizó las siguientes acciones
-
-* Movimiento de la cabeza hacia los laterales (Yaw)
-* Movimiento de la cabeza hacia adelante y atrás (pitch)
-* Movimiento de la cabeza hacia los lados (llevando las orejas a los hombros) (roll)
-* Pestañeo voluntario intermitente
-* Apertura y cierre de la boca.
-* Cerró los ojos.
-* Permaneció inmovil mirando un punto fijo (y pestañando naturalmente).
-
-El formato de los datos es
-
-        "COUNTER",
-        "AF3",
-        "F7",
-        "F3",
-        "FC5",
-        "T7",
-        "P7",
-        "O1",
-        "O2",
-        "P8",
-        "T8",
-        "FC6",
-        "F4",
-        "F8",
-        "AF4",
-        "GYRO_X",
-        "GYRO_Y",
-        "RESERVED",
-        "RESERVED",
-        "RESERVED",
-        "RESERVED",
-        "RESERVED"
-
-Los datos buenos que tomamos deberían ser F7 y F8, GYRO_X y GYRO_Y.
-
-'''
-
 
 
 # In[1]:
@@ -103,15 +58,6 @@ print(signals.head())
 data=signals.values
 
 #%%
-# Operacion de Convolucion matemática
-print('Original Signal')
-print([1,2,3])
-print('Kernel:')
-print([-1,1,-1])
-convolvedsignal = np.convolve([1,2,3],[-1,1,-1], 'same')
-print('Output Signal')
-print(convolvedsignal)
-# %%
 #Me quedo con la columna corrsepondiente a eeg
 eeg = data[:,2]
 # %%
@@ -139,27 +85,6 @@ plt.xlim([0,len(eeg)])
 plt.savefig('signal.png')
 plt.show()
 
-# %%
-plt.plot(eegf1,'r', label='EEG')
-plt.xlabel('t');
-plt.ylabel('eeg(t)');
-plt.title(r'Original EEG Signal - Filter 1')     # r'' representa un raw string que no tiene caracteres especiales
-plt.ylim([-2000, 2000]);
-plt.xlim([0,len(eegf1)])
-plt.savefig('signal.png')
-plt.show()
-
-# %%
-plt.plot(eegf2,'r', label='EEG')
-plt.xlabel('t');
-plt.ylabel('eeg(t)');
-plt.title(r'Original EEG Signal - Filter 2')     # r'' representa un raw string que no tiene caracteres especiales
-plt.ylim([-2000, 2000]);
-plt.xlim([0,len(eegf2)])
-plt.savefig('signal.png')
-plt.show()
-
-# %%
 
 
 # %%
@@ -179,17 +104,57 @@ plt.xlim([0,len(avgeeg)])
 plt.savefig('smoothed.png')
 plt.show()
 # %%
-
-windowlength = 5
-avgeeg = np.convolve(eeg, np.ones((windowlength,))/windowlength, mode='same')
-# El kernel/máscara está compuesto de 10 valores de 1/10.  Cuando esos valores se suman para cada posición, implica que se reemplaza el valor por el promedio
-# de los 5 valores anteriores y 4 posteriores.
-
-plt.plot(avgeeg,'r', label='EEG')
-plt.xlabel('t');
-plt.ylabel('eeg(t)');
-plt.title(r'Smoothed EEG Signal')     
-plt.ylim([-2000, 2000]);
-plt.xlim([0,len(avgeeg)])
-plt.savefig('smoothed.png')
+from scipy.signal import find_peaks
+# %%
+peaks, _ = find_peaks(avgeeg, height=200,distance=128)
+plt.plot(avgeeg)
+plt.plot(peaks, avgeeg[peaks], "x")
+plt.plot(np.zeros_like(avgeeg), "--", color="gray")
 plt.show()
+
+# %%
+#Find the threshold values to determine what is a blinking and what is not
+umbral_superior=int(avgeeg.mean()+3*avgeeg.std())
+print("Upper Threshold: {}".format(umbral_superior))
+umbral_inferior=int(avgeeg.mean()-3*avgeeg.std())
+print("Lower Threshold: {}".format(umbral_inferior))
+plt.figure(figsize=(12,5))
+plt.plot(avgeeg,color="green")
+plt.plot(np.full(len(avgeeg),umbral_superior),'r--')
+plt.plot(np.full(len(avgeeg),umbral_inferior),'r--')
+plt.ylabel("Amplitude",size=10)
+plt.xlabel("Timepoint",size=10)
+plt.title("avgeeg Series with control limits",size=20)
+plt.annotate("Upper Threshold",xy=(500,umbral_superior+10),color="red")
+plt.annotate("Lower Threshold",xy=(500,umbral_inferior+10),color="red")
+plt.show()
+# %%
+'''
+Now the EEG data is filtered to produce a new output, assigning 1, greater than the upper limit, 0 between lower and upper
+limit, and -1, under the lower limit.  In order to determine the number of valid events, changes from 0-1 will be counted
+as a possible blinking event.
+'''
+
+filtro_eeg=[]
+contador=0
+for i in range(len(avgeeg)):
+    if i==0:
+        filtro_eeg.append(0)
+    elif avgeeg[i]>umbral_superior:
+        filtro_eeg.append(1)
+        if avgeeg[i-1]<=umbral_superior:
+            print(i)
+            contador=contador+1
+    elif avgeeg[i]<umbral_inferior:
+        filtro_eeg.append(-1)
+    else:
+        filtro_eeg.append(0)
+print("Blinking counter: {}".format(contador))
+filtro_eeg=np.asarray(filtro_eeg)
+plt.figure(figsize=(16,5))
+plt.plot(filtro_eeg,color="blue")
+plt.title("Blinking Filter",size=20)
+plt.ylabel("Class",size=10)
+plt.xlabel("Timepoint",size=10)
+plt.show()
+
