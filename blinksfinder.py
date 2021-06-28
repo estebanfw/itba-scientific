@@ -7,7 +7,7 @@ The user must input the eeg signals with two require arguments:
 The user has also the chance to pass some optional arguments: 
     -w int: size of the window to calculate the moving average.
     -n int: number to increase (n >1) or decrease (0<n<1) the upper and lower threshold used to detec peaks
-Three ways to calculated the thresholds
+Three ways to calculate the thresholds
     -o1: thresholds = mean +- n standart deviations
     -02: thresholds = median +- n standart deviations
     -o3: thresholds = median +- n interquartil distance
