@@ -1,8 +1,15 @@
 """
-==================
-Final Assignment
-==================
+The goal of this program is to detect blinks.
+The user must input the eeg signals with two require arguments:
+    1 - file_path
+    2 - channel: number of column where it is the corresponding value measure by the sensor
 
+The user has also the chance to pass some optional arguments: 
+    -w int: size of the window to calculate the moving average.
+    -n int: number to increase (n >1) or decrease (0<n<1) the upper and lower threshold used to detec peaks
+    -o1: thresholds = mean +- n standart deviations
+    -02: thresholds = median +- n standart deviations
+    -o3: thresholds = median +- n interquartil distance
 
 """
 # %%
@@ -32,22 +39,10 @@ n=int(args.multiplier)
 
 
 
-
-# %%
-#inputdata=sys.argv[1]
-# %%
-#inputdata='data/blinking.dat'
-
-#%%
-'''
-====================================
-EJERCICIO 0 - DETECCIÓN DE PESTAÑEOS
-====================================
-'''
 #%%
 '''
 -------------------------
-CARGA DE DATASET BLINKING
+LOAD OF DATASET
 -------------------------
 '''
 signals = pd.read_csv(  str(args.inputdata), delimiter=' ', 
@@ -92,7 +87,7 @@ plt.show()
 
 # %%
 # La operación de convolución permite implementar el suavizado del Moving Average
-windowlength = 10
+windowlength = w
 avgeeg = np.convolve(eeg, np.ones((windowlength,))/windowlength, mode='same')
 # %%
 # El kernel/máscara está compuesto de 10 valores de 1/10.  Cuando esos valores se suman para cada posición, implica que se reemplaza el valor por el promedio
@@ -125,7 +120,7 @@ elif args.option2:
     upper_threshold=int(np.median(avgeeg)+delta)
     lower_threshold=int(np.median(avgeeg)-delta)
 elif args.option3:
-    delta=n*np.percentile(avgeeg,75)-np.percentile(avgeeg,25)
+    delta=n*(np.percentile(avgeeg,75)-np.percentile(avgeeg,25))
     upper_threshold= int(np.median(avgeeg)+delta)
     lower_threshold= int(np.median(avgeeg)-delta)
 else:
