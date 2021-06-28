@@ -61,20 +61,8 @@ data=signals.values
 
 eeg = data[:,ncol]
 # %%
-
-# Filtro de todos los valores solo aquellos que son efectivamente mayores a 50
-eegf1 = eeg[eeg>50]
-
-# Muchas veces lo que me interesa es saber los índices (que en series de tiempo representan el tiempo) donde el filtro es positivo
-# Esto se hace con el comando np.where
-idxeeg1f = np.where( eeg > 50 )
-
-# Filtro los valores que son mayores a 10 y menores que -40
-eegf2 = eeg[np.logical_or(eeg>10,eeg<-40)] 
-
 print("Largo 1 %2d" % len(eeg))
-print("Largo 2 %2d" % len(eegf1))
-print("Largo 3 %2d" % len(eegf2))
+
 # %%
 plt.plot(eeg,'r', label='EEG')
 plt.xlabel('t');
