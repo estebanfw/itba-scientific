@@ -15,6 +15,8 @@ Three ways to calculate the thresholds
 Last optional argument use a clustering technique to filter the blinks
     -clustering
 
+THIS CODE IS BASED ON https://github.com/faturita/python-scientific REPO
+
 """
 # %%
 import sys
