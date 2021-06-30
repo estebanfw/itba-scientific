@@ -7,7 +7,7 @@ Final Assignment
 """
 # %%
 print(__doc__)
-from numpy.lib.function_base import average
+from numpy.lib.function_base import average, percentile
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -114,9 +114,12 @@ plt.show()
 
 # %%
 #Find the threshold values to determine what is a blinking and what is not
-umbral_superior=int(avgeeg.mean()+3*avgeeg.std())
+delta=3*avgeeg.std()
+#delta=2*(np.percentile(avgeeg,75)-np.percentile(avgeeg,25))-avgeeg.mean()+np.median(avgeeg)
+#delta=np.max(avgeeg)*.50-avgeeg.mean()
+umbral_superior=int(avgeeg.mean()+delta)
 print("Upper Threshold: {}".format(umbral_superior))
-umbral_inferior=int(avgeeg.mean()-3*avgeeg.std())
+umbral_inferior=int(avgeeg.mean()-delta)
 print("Lower Threshold: {}".format(umbral_inferior))
 plt.figure(figsize=(12,5))
 plt.plot(avgeeg,color="green")
