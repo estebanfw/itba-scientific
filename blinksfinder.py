@@ -2,23 +2,23 @@
 The goal of this program is to detect blinks.
 The user must input the eeg signals with two require arguments:
     1 - file_path
-    2 - channel: number of column where it is the corresponding value measure by the sensor
+    2 - channel: number of column where it is the corresponding value measured by the sensor
 
 The user has also the chance to pass some optional arguments: 
     -w int: size of the window to calculate the moving average.
     -n int: number to increase (n >1) or decrease (0<n<1) the upper and lower threshold used to detec peaks
-Three ways to calculate the thresholds
+The next optional arguments must be used once at a time:
+    Three ways to calculate the thresholds
     -o1: thresholds = mean +- n standart deviations
     -02: thresholds = median +- n standart deviations
     -o3: thresholds = median +- n interquartil distance
     If this argument is not passed, default is option 1.
-Last optional argument use a clustering technique to filter the blinks
+    Last optional argument use a clustering technique to filter the blinks
     -clustering
 
 THIS CODE IS BASED ON https://github.com/faturita/python-scientific REPO
 
 """
-# %%
 import sys
 from numpy.lib.function_base import average, percentile
 import pandas as pd
@@ -45,9 +45,6 @@ ncol=int(args.col)
 w=int(args.window)
 n=int(args.multiplier)
 
-
-
-#%%
 '''
 -------------------------
 LOAD OF DATASET
@@ -197,4 +194,3 @@ else:
     plt.ylabel("Class",size=10)
     plt.xlabel("Timepoint",size=10)
     plt.show()
-
